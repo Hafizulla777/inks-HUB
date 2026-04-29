@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InkHub - Find Your Perfect Tattoo Artist & Design</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          colors: {
+            primary: '#e11d48',
+            secondary: '#0f172a',
+            muted: '#64748b',
+            surface: '#f8fafc',
+            border: '#e2e8f0'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --primary: #e11d48;
+      --secondary: #0f172a;
+      --muted: #64748b;
+      --surface: '#f8fafc';
+      --border: #e2e8f0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #ffffff;
+      color: var(--secondary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    .reveal { opacity: 0; transform: translateY(20px); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+
+    .design-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .design-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+    .artist-card:hover { border-color: var(--primary); }
+
+    .search-input:focus, .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.1); }
+
+    .tag-btn { transition: all 0.2s ease; }
+    .tag-btn:hover, .tag-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); }
+
+    .fab { position: fixed; bottom: 2rem; right: 2rem; z-index: 50; box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.5); transition: transform 0.2s ease; }
+    .fab:hover { transform: scale(1.05); }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-content { background: white; width: 100%; max-width: 450px; border-radius: 16px; overflow: hidden; transform: scale(0.9) translateY(20px); transition: transform 0.3s ease; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+    .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
+
+    /* Admin Dashboard Specific Improvements */
+    .dash-stat-card { position: relative; overflow: hidden; }
+    .dash-stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); opacity: 0; transition: opacity 0.3s; }
+    .dash-stat-card:hover::before { opacity: 1; }
+    
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .status-pending { background-color: #f59e0b; }
+    .status-confirmed { background-color: #10b981; }
+    .status-completed { background-color: #64748b; }
+
+    /* Table Row Hover */
+    .admin-table tbody tr { transition: background-color 0.2s; }
+    .admin-table tbody tr:hover { background-color: #fff1f2; }
+  </style>
+</head>
+<body class="bg-white">
+
+  <!-- Navigation -->
+  <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M16 11a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+          </div>
+          <span class="text-xl font-bold text-secondary tracking-tight">InkHub</span>
+        </div>
+
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#designs" class="text-sm font-medium text-muted hover:text-secondary transition-colors">Designs</a>
+          <a href="#artists" class="text-sm font-medium text-muted hover:text-secondary transition-colors">Artists</a>
+          <a href="#admin" class="text-sm font-medium text-muted hover:text-secondary transition-colors">Admin</a>
+          <a href="#booking" class="text-sm font-medium text-muted hover:text-secondary transition-colors">Booking</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="openAuthModal('login')" class="hidden sm:block text-sm font-semibold text-secondary hover:text-primary transition-colors">Login</button>
+          <button onclick="openAuthModal('signup')" class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-rose-700 transition-colors shadow-sm">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="relative bg-gradient-to-b from-slate-50 to-white pt-10 pb-20 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-secondary tracking-tight leading-tight mb-6 reveal">
+        Find Your Next <span class="text-primary">Tattoo</span> Idea
+      </h1>
+      <p class="text-lg text-muted max-w-2xl mx-auto mb-10 reveal" style="transition-delay: 0.1s;">
+        Explore thousands of designs and connect with the best tattoo artists in your city.
+      </p>
+
+      <div class="max-w-3xl mx-auto bg-white p-4 rounded-2xl shadow-xl border border-slate-100 reveal" style="transition-delay: 0.2s;">
+        <div class="flex flex-col md:flex-row gap-3">
+          <div class="flex-1 relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input type="text" placeholder="Search for designs (e.g., Dragon, Minimalist)" class="search-input w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg text-sm">
+          </div>
+          <select class="w-full md:w-48 px-4 py-3 border border-slate-200 rounded-lg text-sm text-muted bg-white focus:outline-none focus:border-primary">
+            <option>All Locations</option>
+            <option>Mumbai</option>
+            <option>Delhi</option>
+            <option>Bangalore</option>
+          </select>
+          <button class="w-full md:w-auto px-8 py-3 bg-secondary text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors">Search</button>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-2 mt-6 reveal" style="transition-delay: 0.3s;">
+        <span class="text-xs text-muted mr-2 self-center">Popular:</span>
+        <button class="px-3 py-1 text-xs font-medium border border-slate-200 rounded-full hover:border-primary hover:text-primary transition-colors">Maori</button>
+        <button class="px-3 py-1 text-xs font-medium border border-slate-200 rounded-full hover:border-primary hover:text-primary transition-colors">Realism</button>
+        <button class="px-3 py-1 text-xs font-medium border border-slate-200 rounded-full hover:border-primary hover:text-primary transition-colors">Geometric</button>
+      </div>
+    </div>
+    
+    <div class="absolute top-20 left-10 w-64 h-64 bg-rose-100 rounded-full filter blur-3xl opacity-50 mix-blend-multiply"></div>
+    <div class="absolute bottom-10 right-10 w-64 h-64 bg-slate-100 rounded-full filter blur-3xl opacity-50 mix-blend-multiply"></div>
+  </section>
+
+  <!-- Trending Designs Section -->
+  <section id="designs" class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h2 class="text-2xl font-bold text-secondary reveal">Trending Designs</h2>
+          <p class="text-sm text-muted mt-1 reveal" style="transition-delay: 0.1s;">Explore curated collection of tattoo flash</p>
+        </div>
+        <a href="#" class="text-sm font-semibold text-primary hover:underline reveal" style="transition-delay: 0.2s;">View All</a>
+      </div>
+
+      <div class="flex gap-2 overflow-x-auto pb-4 mb-6 reveal" id="filterContainer">
+        <button class="tag-btn active px-4 py-2 text-sm font-medium border border-slate-200 rounded-full whitespace-nowrap" data-filter="all">All Styles</button>
+        <button class="tag-btn px-4 py-2 text-sm font-medium border border-slate-200 rounded-full whitespace-nowrap" data-filter="tribal">Tribal</button>
+        <button class="tag-btn px-4 py-2 text-sm font-medium border border-slate-200 rounded-full whitespace-nowrap" data-filter="realism">Realism</button>
+        <button class="tag-btn px-4 py-2 text-sm font-medium border border-slate-200 rounded-full whitespace-nowrap" data-filter="minimalist">Minimalist</button>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" id="designsGrid"></div>
+    </div>
+  </section>
+
+  <!-- Top Artists Section -->
+  <section id="artists" class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl font-bold text-secondary reveal">Top Rated Artists</h2>
+        <p class="text-sm text-muted mt-1 reveal" style="transition-delay: 0.1s;">Book sessions with the best in the industry</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="artistsList"></div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="py-16 bg-secondary text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div class="reveal"><p class="text-3xl md:text-4xl font-bold text-primary">2,500+</p><p class="text-sm text-slate-300 mt-1">Verified Designs</p></div>
+        <div class="reveal" style="transition-delay: 0.1s;"><p class="text-3xl md:text-4xl font-bold text-primary">450+</p><p class="text-sm text-slate-300 mt-1">Professional Artists</p></div>
+        <div class="reveal" style="transition-delay: 0.2s;"><p class="text-3xl md:text-4xl font-bold text-primary">120+</p><p class="text-sm text-slate-300 mt-1">Partner Studios</p></div>
+        <div class="reveal" style="transition-delay: 0.3s;"><p class="text-3xl md:text-4xl font-bold text-primary">50k+</p><p class="text-sm text-slate-300 mt-1">Happy Customers</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       IMPROVED: BOOKING ADMIN DASHBOARD
+       ========================================== -->
+  <section id="admin" class="py-20 bg-slate-50 border-t border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+        <div class="mb-4 md:mb-0">
+          <span class="text-xs font-bold uppercase tracking-widest text-primary mb-1 block">Control Panel</span>
+          <h2 class="text-3xl font-bold text-secondary reveal">Booking Admin</h2>
+        </div>
+        <div class="flex gap-3 reveal" style="transition-delay: 0.2s;">
+           <button class="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-secondary hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
+             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+             Filter
+           </button>
+           <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-rose-700 transition-colors shadow-sm flex items-center gap-2">
+             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+             Add Booking
+           </button>
+        </div>
+      </div>
+
+      <!-- Improved Stats Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="dash-stat-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm reveal active">
+          <div class="flex justify-between items-center mb-4">
+            <div class="p-2 bg-blue-50 rounded-lg">
+               <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </div>
+            <span class="text-xs text-muted">Today</span>
+          </div>
+          <p class="text-3xl font-bold text-secondary">18</p>
+          <p class="text-xs text-muted mt-1">Total Appointments</p>
+        </div>
+
+        <div class="dash-stat-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm reveal active" style="transition-delay: 0.1s;">
+          <div class="flex justify-between items-center mb-4">
+            <div class="p-2 bg-amber-50 rounded-lg">
+               <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <span class="text-xs text-muted">Action Required</span>
+          </div>
+          <p class="text-3xl font-bold text-amber-500">4</p>
+          <p class="text-xs text-muted mt-1">Pending Requests</p>
+        </div>
+
+        <div class="dash-stat-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm reveal active" style="transition-delay: 0.2s;">
+          <div class="flex justify-between items-center mb-4">
+            <div class="p-2 bg-green-50 rounded-lg">
+               <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <span class="text-xs text-muted">Status</span>
+          </div>
+          <p class="text-3xl font-bold text-green-500">14</p>
+          <p class="text-xs text-muted mt-1">Completed Sessions</p>
+        </div>
+
+        <div class="dash-stat-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm reveal active" style="transition-delay: 0.3s;">
+          <div class="flex justify-between items-center mb-4">
+            <div class="p-2 bg-rose-50 rounded-lg">
+               <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <span class="text-xs text-muted">Revenue</span>
+          </div>
+          <p class="text-3xl font-bold text-secondary">Rs. 45k</p>
+          <p class="text-xs text-muted mt-1">Today's Earnings</p>
+        </div>
+      </div>
+
+      <!-- Improved Table -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden reveal active" style="transition-delay: 0.4s;">
+        <div class="overflow-x-auto">
+          <table class="admin-table w-full text-sm text-left min-w-[800px]">
+            <thead class="text-xs text-muted uppercase bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-6 py-4 font-semibold">Client Details</th>
+                <th class="px-6 py-4 font-semibold">Tattoo Info</th>
+                <th class="px-6 py-4 font-semibold">Artist</th>
+                <th class="px-6 py-4 font-semibold">Time</th>
+                <th class="px-6 py-4 font-semibold">Status</th>
+                <th class="px-6 py-4 font-semibold text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <!-- Row 1 -->
+              <tr>
+                <td class="px-6 py-4">
+                  <div class="font-medium text-secondary">Rahul Mehta</div>
+                  <div class="text-xs text-muted">rahul.m@email.com</div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-secondary text-sm">Realism Portrait</div>
+                  <div class="text-xs text-muted">Size: 6 Inch</div>
+                </td>
+                <td class="px-6 py-4 text-muted">Vikram Singh</td>
+                <td class="px-6 py-4 text-muted">02:00 PM</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                    <span class="status-dot status-pending"></span>Pending
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <button class="text-primary hover:underline font-medium text-xs mr-3">Confirm</button>
+                  <button class="text-muted hover:text-slate-600 font-medium text-xs">Cancel</button>
+                </td>
+              </tr>
+              <!-- Row 2 -->
+              <tr>
+                <td class="px-6 py-4">
+                  <div class="font-medium text-secondary">Priya Sharma</div>
+                  <div class="text-xs text-muted">priya.s@email.com</div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-secondary text-sm">Geometric Sleeve</div>
+                  <div class="text-xs text-muted">Full Arm</div>
+                </td>
+                <td class="px-6 py-4 text-muted">Maya Sharma</td>
+                <td class="px-6 py-4 text-muted">11:00 AM</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                    <span class="status-dot status-confirmed"></span>Confirmed
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <button class="text-slate-600 hover:text-primary font-medium text-xs mr-3">View</button>
+                  <button class="text-muted hover:text-slate-600 font-medium text-xs">Reschedule</button>
+                </td>
+              </tr>
+               <!-- Row 3 -->
+               <tr>
+                <td class="px-6 py-4">
+                  <div class="font-medium text-secondary">Ankit Singh</div>
+                  <div class="text-xs text-muted">ankit.s@email.com</div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-secondary text-sm">Tribal Arm Band</div>
+                  <div class="text-xs text-muted">Size: 4 Inch</div>
+                </td>
+                <td class="px-6 py-4 text-muted">Arjun Patel</td>
+                <td class="px-6 py-4 text-muted">04:00 PM</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                    <span class="status-dot status-completed"></span>Completed
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <button class="text-slate-600 hover:text-primary font-medium text-xs mr-3">Invoice</button>
+                  <button class="text-muted hover:text-slate-600 font-medium text-xs">Archive</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       IMPROVED: BOOKING SECTION (NEAR GET IN TOUCH)
+       ========================================== -->
+  <section id="booking" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-16 items-start">
+        
+        <!-- Left: Get in Touch Info -->
+        <div class="reveal">
+          <span class="text-xs font-bold uppercase tracking-widest text-primary mb-2 block">Contact Us</span>
+          <h2 class="text-3xl md:text-4xl font-bold text-secondary mb-6">Get In Touch</h2>
+          <p class="text-muted mb-10 leading-relaxed">
+            Have questions about custom designs or need a consultation? Reach out directly or book an appointment online.
+          </p>
+
+          <div class="space-y-6 mb-10">
+            <div class="flex gap-4 items-start">
+              <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-secondary">Studio Location</h4>
+                <p class="text-sm text-muted">42 Art District, Andheri West, Mumbai</p>
+              </div>
+            </div>
+            <div class="flex gap-4 items-start">
+              <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-secondary">Email Us</h4>
+                <p class="text-sm text-muted">hello@inkhub.in</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Opening Hours Widget -->
+          <div class="bg-slate-50 p-6 rounded-xl border border-slate-100">
+            <h4 class="font-semibold text-secondary mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              Opening Hours
+            </h4>
+            <ul class="space-y-2 text-sm">
+              <li class="flex justify-between"><span class="text-muted">Mon - Sat</span> <span class="font-medium text-secondary">11:00 AM - 9:00 PM</span></li>
+              <li class="flex justify-between"><span class="text-muted">Sunday</span> <span class="font-medium text-secondary">Closed</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Right: Booking Form -->
+        <div class="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-slate-100 reveal" style="transition-delay: 0.2s;">
+          <h3 class="text-xl font-bold text-secondary mb-6">Book an Appointment</h3>
+          <form class="space-y-5" id="bookingForm">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-secondary mb-1.5">First Name</label>
+                <input type="text" class="form-input w-full px-4 py-2.5 border border-slate-200 rounded-lg" placeholder="John">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-secondary mb-1.5">Last Name</label>
+                <input type="text" class="form-input w-full px-4 py-2.5 border border-slate-200 rounded-lg" placeholder="Doe">
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-secondary mb-1.5">Email Address</label>
+              <input type="email" class="form-input w-full px-4 py-2.5 border border-slate-200 rounded-lg" placeholder="john@example.com">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-secondary mb-1.5">Preferred Date</label>
+                <input type="date" class="form-input w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white"></input>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-secondary mb-1.5">Time Slot</label>
+                <select class="form-input w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white">
+                  <option>11:00 AM</option>
+                  <option>01:00 PM</option>
+                  <option>03:00 PM</option>
+                  <option>05:00 PM</option>
+                  <option>07:00 PM</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-secondary mb-1.5">Select Artist</label>
+              <select class="form-input w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white">
+                <option>Any Available</option>
+                <option>Vikram Singh (Realism)</option>
+                <option>Maya Sharma (Geometric)</option>
+                <option>Arjun Patel (Tribal)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-secondary mb-1.5">Body Placement</label>
+              <select class="form-input w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-white">
+                <option>Select Placement</option>
+                <option>Full Arm</option>
+                <option>Half Arm</option>
+                <option>Back Piece</option>
+                <option>Chest</option>
+                <option>Leg</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-secondary mb-1.5">Description / References</label>
+              <textarea rows="3" class="form-input w-full px-4 py-2.5 border border-slate-200 rounded-lg" placeholder="Describe your idea or paste image links..."></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-rose-700 transition-colors shadow-sm flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              Request Appointment
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-white pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+        
+        <div class="lg:col-span-1">
+          <div class="flex items-center gap-2 mb-5">
+            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M16 11a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </div>
+            <span class="text-xl font-bold tracking-tight">InkHub</span>
+          </div>
+          <p class="text-slate-400 text-sm leading-relaxed mb-6">
+            India's largest tattoo discovery platform bridging the gap between art and skin.
+          </p>
+          <div>
+            <label class="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2 block">Newsletter</label>
+            <div class="flex">
+              <input type="email" placeholder="Email address" class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-l-lg text-sm focus:outline-none focus:border-primary">
+              <button class="px-4 py-2 bg-primary rounded-r-lg hover:bg-rose-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-bold uppercase tracking-wider text-white mb-5">Company</h4>
+          <ul class="space-y-3">
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">About Us</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">Careers <span class="ml-1 text-xs bg-primary px-2 py-0.5 rounded-full text-white">Hiring</span></a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">Blog</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-bold uppercase tracking-wider text-white mb-5">Support</h4>
+          <ul class="space-y-3">
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">Help Center</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">Safety Center</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">Contact Support</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-bold uppercase tracking-wider text-white mb-5">Legal</h4>
+          <ul class="space-y-3">
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">Terms of Service</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">Privacy Policy</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors text-sm">Cookie Policy</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="text-slate-500 text-xs">&copy; 2024 InkHub Technologies Pvt Ltd. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all" aria-label="Facebook">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+          <a href="#" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all" aria-label="Instagram">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Login / Signup Modal -->
+  <div id="authModal" class="modal-overlay">
+    <div class="modal-content relative">
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 z-10">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+      <div class="flex border-b border-slate-200">
+        <button id="loginTab" onclick="switchTab('login')" class="w-1/2 py-4 text-sm font-semibold text-primary border-b-2 border-primary">Login</button>
+        <button id="signupTab" onclick="switchTab('signup')" class="w-1/2 py-4 text-sm font-semibold text-muted border-b-2 border-transparent hover:text-slate-600">Sign Up</button>
+      </div>
+      <div class="p-8">
+        <form id="loginForm" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-1.5">Email Address</label>
+            <input type="email" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" placeholder="you@example.com">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-1.5">Password</label>
+            <input type="password" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" placeholder="••••••••">
+          </div>
+          <button type="button" onclick="simulateLogin()" class="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-rose-700 transition-colors shadow-sm">Login to Account</button>
+        </form>
+        <form id="signupForm" class="space-y-5 hidden">
+           <div>
+            <label class="block text-sm font-medium text-secondary mb-1.5">Full Name</label>
+            <input type="text" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" placeholder="John Doe">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-1.5">Email Address</label>
+            <input type="email" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" placeholder="you@example.com">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-1.5">Create Password</label>
+            <input type="password" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Create a password">
+          </div>
+          <button type="button" onclick="simulateSignup()" class="w-full py-3 bg-secondary text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors shadow-sm">Create Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab hidden md:flex items-center gap-2 px-6 py-4 bg-primary text-white font-bold rounded-full shadow-lg" aria-label="Get Quote">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+    Get Quote
+  </button>
+
+  <script>
+    'use strict';
+
+    // Data
+    const designs = [
+      { id: 1, title: 'Maori Chest Piece', style: 'tribal', price: '15,000', image: 'https://images.unsplash.com/photo-1611501275019-9b5cda994e8d?w=400&h=500&fit=crop', likes: 234 },
+      { id: 2, title: 'Lion Realism', style: 'realism', price: '12,000', image: 'https://images.unsplash.com/photo-1562962230-16e4623d36e6?w=400&h=500&fit=crop', likes: 189 },
+      { id: 3, title: 'Geometric Sleeve', style: 'realism', price: '20,000', image: 'https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?w=400&h=500&fit=crop', likes: 412 },
+      { id: 4, title: 'Minimalist Mountain', style: 'minimalist', price: '3,000', image: 'https://images.unsplash.com/photo-1542727866-6d67b3739c31?w=400&h=500&fit=crop', likes: 98 },
+    ];
+    const artists = [
+      { id: 1, name: 'Vikram Singh', location: 'Mumbai', specialty: 'Realism, Portraits', rating: 4.9, reviews: 112, price: 'Rs. 1500/hr', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop' },
+      { id: 2, name: 'Maya Sharma', location: 'Delhi', specialty: 'Geometric, Mandala', rating: 4.8, reviews: 98, price: 'Rs. 1200/hr', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop' },
+    ];
+
+    // DOM Elements
+    const designsGrid = document.getElementById('designsGrid');
+    const artistsList = document.getElementById('artistsList');
+    const filterContainer = document.getElementById('filterContainer');
+    const authModal = document.getElementById('authModal');
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const loginTab = document.getElementById('loginTab');
+    const signupTab = document.getElementById('signupTab');
+
+    // Render Functions
+    function renderDesigns(filter = 'all') {
+      const filtered = filter === 'all' ? designs : designs.filter(d => d.style === filter);
+      designsGrid.innerHTML = filtered.map((design) => `
+        <div class="design-card bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm reveal active">
+          <div class="relative aspect-[4/5] overflow-hidden group">
+            <img src="${design.image}" alt="${design.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-secondary text-sm mb-1">${design.title}</h3>
+            <p class="text-sm font-bold text-secondary mt-2">Rs. ${design.price}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderArtists() {
+      artistsList.innerHTML = artists.map((artist) => `
+        <div class="artist-card bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex gap-4 transition-all duration-300 reveal active">
+          <img src="${artist.avatar}" alt="${artist.name}" class="w-20 h-20 rounded-lg object-cover flex-shrink-0">
+          <div class="flex-1">
+            <h3 class="font-bold text-secondary">${artist.name}</h3>
+            <p class="text-xs text-muted mb-2">${artist.specialty}</p>
+            <div class="flex items-center justify-between mt-auto">
+              <span class="text-xs font-semibold text-secondary">${artist.price}</span>
+              <button class="px-4 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-md hover:bg-primary hover:text-white transition-colors">Book Now</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Modal Logic
+    function openAuthModal(type) {
+      authModal.classList.add('active');
+      switchTab(type);
+    }
+    function closeAuthModal() { authModal.classList.remove('active'); }
+    function switchTab(type) {
+      if (type === 'login') {
+        loginForm.classList.remove('hidden'); signupForm.classList.add('hidden');
+        loginTab.classList.add('text-primary', 'border-primary'); loginTab.classList.remove('text-muted', 'border-transparent');
+        signupTab.classList.remove('text-primary', 'border-primary'); signupTab.classList.add('text-muted', 'border-transparent');
+      } else {
+        signupForm.classList.remove('hidden'); loginForm.classList.add('hidden');
+        signupTab.classList.add('text-primary', 'border-primary'); signupTab.classList.remove('text-muted', 'border-transparent');
+        loginTab.classList.remove('text-primary', 'border-primary'); loginTab.classList.add('text-muted', 'border-transparent');
+      }
+    }
+    function simulateLogin() { alert('Login Successful! Welcome back to InkHub.'); closeAuthModal(); }
+    function simulateSignup() { alert('Account Created! Welcome to InkHub.'); closeAuthModal(); }
+    
+    authModal.addEventListener('click', (e) => { if (e.target === authModal) closeAuthModal(); });
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      renderDesigns();
+      renderArtists();
+      filterContainer.addEventListener('click', (e) => {
+        if(e.target.classList.contains('tag-btn')) {
+          document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+          e.target.classList.add('active');
+          renderDesigns(e.target.dataset.filter);
+        }
+      });
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('active'); observer.unobserve(entry.target); } });
+      }, { threshold: 0.1 });
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    });
+  </script>
+</body>
+</html>

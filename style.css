@@ -1,0 +1,279 @@
+//* --- GLOBAL RESET & BASE --- */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: #0b0b0b;
+      color: #fff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* --- FOCUS STATES (Accessibility) --- */
+    :focus-visible {
+      outline: 2px solid #c8a95d;
+      outline-offset: 2px;
+    }
+
+    /* --- NAVBAR --- */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 5%;
+      background: #0b0b0b;
+      border-bottom: 1px solid #1a1a1a;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo a {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: 1px;
+    }
+
+    .logo span {
+      color: #c8a95d;
+    }
+
+    .menu-links {
+      display: flex;
+      gap: 30px;
+      list-style: none;
+    }
+
+    .menu-links a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .menu-links a:hover,
+    .menu-links a[aria-current="page"] {
+      color: #c8a95d;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 5px;
+      background: none;
+      border: none;
+    }
+
+    .hamburger span {
+      width: 25px;
+      height: 2px;
+      background: #fff;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger.toggle-anim span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger.toggle-anim span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.toggle-anim span:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+
+
+
+
+
+
+
+
+
+
+/* main-container */
+
+.main-container{
+    width: 100%; height: 700px;
+    overflow: hidden;
+    position: relative;
+
+    display: flex;
+    justify-content: center; align-items: center;
+}
+
+.main-container::before{
+    content: "";
+    position: absolute;
+    inset:0;
+
+  background: linear-gradient(
+    rgba(0, 0, 0, 0.5),
+    rgba(0,0,0,0.5)
+  ), url("gojo.jpg");
+
+  filter: blur(5px); /* 👈 BLUR HERE */
+  z-index: 0;
+
+  background-size: cover;
+  background-position: center ;
+}
+
+.content{
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    color: #fff;
+}
+
+.content .h1{
+    font-size: 33px;
+    padding-bottom: 7px;
+}
+
+.content .p{
+    font-size: 22px;
+    padding-bottom: 7px;
+}
+
+.btn{
+  border-radius: 7px;
+  border: none;
+  padding: 10px 20px;  
+  font-size: 17px;
+  background-color: orange;
+  cursor: pointer;
+  transition: all ease-in 0.1s;
+}
+
+.btn:hover{
+    background-color: darkorange;
+}
+
+
+
+
+
+
+/* FOOTER */
+.footer {
+width: 100%;
+background-color: #0a0a0a;
+color: rgba(200, 200, 200, 0.8);
+}
+
+/* MAIN FOOTER */
+.sub-footer {
+display: flex;
+justify-content: space-between;
+flex-wrap: wrap; /* IMPORTANT */
+gap: 30px;
+padding: 50px 20px;
+max-width: 1200px;
+margin: auto;
+}
+
+/* TITLE */
+.title {
+color: #fff;
+margin-bottom: 10px;
+}
+
+.title span {
+color: goldenrod;
+}
+
+/* DESCRIPTION */
+.desc {
+margin-top: 10px;
+line-height: 1.5;
+}
+
+/* LINKS */
+.links {
+list-style: none;
+margin-top: 10px;
+}
+
+.links li {
+margin-bottom: 6px;
+}
+
+.links a {
+text-decoration: none;
+color: rgba(160, 160, 160, 0.8);
+transition: 0.3s;
+}
+
+.links a:hover {
+color: goldenrod;
+}
+
+/* POLICY LINKS */
+.pp {
+cursor: pointer;
+transition: 0.3s;
+}
+
+.pp:hover {
+color: goldenrod;
+}
+
+/* BOTTOM BAR */
+.rules {
+border-top: 1px solid #333;
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 15px 20px;
+font-size: 14px;
+}
+
+.policy {
+display: flex;
+gap: 20px;
+}
+
+/* =========================
+RESPONSIVE
+========================= */
+
+/* Tablet */
+@media (max-width: 900px) {
+.sub-footer {
+gap: 20px;
+}
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+
+.sub-footer {
+flex-direction: column;
+text-align: center;
+}
+
+.rules {
+flex-direction: column;
+gap: 10px;
+text-align: center;
+}
+
+.policy {
+justify-content: center;
+}
+}
